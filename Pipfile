@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 boto3 = {extras = ["crt"], version = "*"}
 jupyter-contrib-nbextensions = "*"
+jupyter-nbextensions-configurator = "*"
+jupyterlab = "*"
 
 [dev-packages]
 
