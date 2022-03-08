@@ -8,6 +8,8 @@ boto3 = {extras = ["crt"], version = "*"}
 jupyter-contrib-nbextensions = "*"
 jupyter-nbextensions-configurator = "*"
 jupyterlab = "*"
+flask-restful = "*"
+pytest = "*"
 
 [dev-packages]
 

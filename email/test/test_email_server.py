@@ -1,6 +1,6 @@
 import requests
 
-URL = "http://localhost:5000/"
+URL = "http://127.0.0.1:5000/"
 
 
 def test_should_be_able_to_ping_server():
