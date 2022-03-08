@@ -16,7 +16,8 @@ class Ping(Resource):
 
 class Contact(Resource):
     def get(self):
-        pass
+        args = parser.parse_args()
+        return "", 200
 
     def post(self):
         args = parser.parse_args()
