@@ -84,8 +84,22 @@ class Contact(Resource):
             abort(404, message="not found")
 
 
+send_parser = parser.copy()
+send_parser.add_argument("template_name", type=str, help="template name", required=True)
+send_parser.add_argument("from_email", type=str, help="from address", required=True)
+
+
+class Send(Resource):
+    def post(self):
+        """Send a templated mass email from `from_email` to `contact_list_name`"""
+        args = send_parser.parse_args()
+        app.logger.info(f"sending to {args=}")
+        return "", 200
+
+
 api.add_resource(Ping, "/ping")
 api.add_resource(Contact, "/contact")
+api.add_resource(Send, "/send")
 
 if __name__ == "__main__":
     app.run(debug=True)

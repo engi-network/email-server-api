@@ -4,7 +4,9 @@ import requests
 
 URL = "http://127.0.0.1:5000"
 EMAIL = "christopherkelly@engi.network"
+FROM_EMAIL = "g@engi.network"
 CONTACT_LIST_NAME = "engi-newsletter"
+TEMPLATE_NAME = "engi-newsletter-welcome-template"
 TOPICS = [CONTACT_LIST_NAME]
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
@@ -37,6 +39,21 @@ class TestContact:
 
     def test_should_be_able_to_delete_contact(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
+
+
+def test_should_be_able_to_send_msg():
+    assert (
+        requests.post(
+            f"{URL}/send",
+            data={
+                "contact_list_name": CONTACT_LIST_NAME,
+                "topics": TOPICS,
+                "template_name": TEMPLATE_NAME,
+                "from_email": FROM_EMAIL,
+            },
+        ).status_code
+        == 200
+    )
 
 
 def test_should_be_able_to_ping_server():
