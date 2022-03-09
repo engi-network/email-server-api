@@ -13,7 +13,11 @@ class TestContact:
         assert requests.post(TestContact.endpoint, data=DATA).status_code == 200
 
     def test_should_be_able_to_check_contact(self):
-        assert requests.get(TestContact.endpoint, params=DATA).status_code == 200
+        r = requests.get(TestContact.endpoint, params=DATA)
+        assert r.status_code == 200
+        meta = r.json()
+        assert meta["ContactListName"] == TOPIC
+        assert meta["EmailAddress"] == EMAIL
 
     def test_should_be_able_to_delete_contact(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
