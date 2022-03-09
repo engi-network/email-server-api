@@ -12,6 +12,9 @@ parser = reqparse.RequestParser()
 parser.add_argument("email", type=str, help="email address")
 parser.add_argument("contact_list_name", type=str, help="contact list name")
 parser.add_argument("topics", action="append", help="list of topics")
+parser.add_argument(
+    "attributes", type=str, default="", help="contact attributes encoded as string"
+)
 
 
 class Ping(Resource):
@@ -25,6 +28,7 @@ def marshal(r):
         "ContactListName": fields.Raw,
         "EmailAddress": fields.Raw,
         "TopicDefaultPreferences": fields.Raw,
+        "AttributesData": fields.Raw,
         "TopicPreferences": fields.Raw,
         "UnsubscribeAll": fields.Raw,
         "CreatedTimestamp": fields.DateTime(dt_format="iso8601"),
@@ -60,6 +64,7 @@ class Contact(Resource):
                         {"TopicName": topic, "SubscriptionStatus": "OPT_IN"}
                         for topic in args.get("topics", [])
                     ],
+                    AttributesData=args.get("attributes", ""),
                 )
             )
         except ses_client.exceptions.AlreadyExistsException:
