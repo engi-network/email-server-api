@@ -10,6 +10,7 @@ jupyter-nbextensions-configurator = "*"
 jupyterlab = "*"
 flask-restful = "*"
 pytest = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
