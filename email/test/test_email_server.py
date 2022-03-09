@@ -4,11 +4,10 @@ import requests
 
 URL = "http://127.0.0.1:5000"
 EMAIL = "christopherkelly@engi.network"
-FIRST_NAME = "chris"
 CONTACT_LIST_NAME = "engi-newsletter"
 TOPICS = [CONTACT_LIST_NAME]
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
-ATTRS = json.dumps({"first_name": FIRST_NAME})
+ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
 
 
 class TestContact:
