@@ -23,6 +23,10 @@ class Contact(Resource):
         args = parser.parse_args()
         return "", 200
 
+    def delete(self):
+        args = parser.parse_args()
+        return "", 200
+
 
 api.add_resource(Ping, "/ping")
 api.add_resource(Contact, "/contact")
