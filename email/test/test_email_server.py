@@ -4,7 +4,7 @@ import time
 import pytest
 import requests
 
-URL = "http://127.0.0.1:5000"
+URL = "http://127.0.0.1:8000"
 EMAIL = "christopherkelly@engi.network"
 FROM_EMAIL = "g@engi.network"
 CONTACT_LIST_NAME = "engi-newsletter"
@@ -55,7 +55,7 @@ def test_should_be_able_to_send_msg(create_contact_request):
             "default_attributes": DEFAULT_ATTRS,
         },
     )
-    assert r.status_code == 200
+    assert r.status_code == 202
     # fudge enough time for the backend to send a test message before the
     # fixture is torn down and the contact we're sending to is deleted
     time.sleep(2)

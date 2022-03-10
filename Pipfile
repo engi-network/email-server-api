@@ -5,9 +5,7 @@ name = "pypi"
 
 [packages]
 boto3 = {extras = ["crt"], version = "*"}
-jupyter-contrib-nbextensions = "*"
-jupyter-nbextensions-configurator = "*"
-jupyterlab = "*"
+
 flask-restful = "*"
 pytest = "*"
 python-dotenv = "*"
@@ -15,6 +13,9 @@ celery = {extras = ["sqs"], version = "*"}
 pycurl = "*"
 
 [dev-packages]
+jupyter-contrib-nbextensions = "*"
+jupyter-nbextensions-configurator = "*"
+jupyterlab = "*"
 
 [requires]
 python_version = "3.9"

@@ -16,10 +16,11 @@ class Send(Resource):
         """Send a templated mass email from `from_email` to `contact_list_name`"""
         args = parser.parse_args()
         app.logger.info(f"sending to {args=}")
-        async_send_bulk_email.delay(
+        task = async_send_bulk_email.delay(
             args["from_email"],
             args["contact_list_name"],
             args["topic"],
             args["template_name"],
             args["default_attributes"],
         )
+        return task.id, 202

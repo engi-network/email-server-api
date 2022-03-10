@@ -26,4 +26,4 @@ api.add_resource(Contact, "/contact")
 api.add_resource(Send, "/send")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

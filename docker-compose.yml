@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    image: web
+    container_name: web
+    ports:
+      - 8000:5000
+    command: flask run -h 0.0.0.0
+    volumes:
+      - .:/code
+    env_file: .env
+    environment:
+      - FLASK_DEBUG=1
+      - PYTHONPATH=/code/email
+      - FLASK_APP=api.py
+
+  worker:
+    build: .
+    command: celery -A tasks worker --loglevel=INFO
+    volumes:
+      - .:/code
+    env_file: .env
+    environment:
+      - PYTHONPATH=/code/email
+    depends_on:
+      - web
