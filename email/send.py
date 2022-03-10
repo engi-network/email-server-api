@@ -22,14 +22,14 @@ def get_attribute_data(client, contact_list_name, email):
 
 
 def list_contacts(client, contact_list_name, topic=None):
-    contacts = []
-
     def add_contacts(r):
+        contacts = []
         for contact in r["Contacts"]:
             contact["AttributesData"] = get_attribute_data(
                 client, contact_list_name, contact["EmailAddress"]
             )
             contacts.append(contact)
+        yield contacts
 
     filter = {}
     if topic is not None:
@@ -40,17 +40,16 @@ def list_contacts(client, contact_list_name, topic=None):
     r = client.list_contacts(
         ContactListName=contact_list_name,
         Filter=filter,
+        PageSize=50,  # SendBulkEmail operation: You must specify at least 1 destination, and no more than 50 destinations
     )
-    add_contacts(r)
+    yield from add_contacts(r)
 
     while True:
         token = r.get("NextToken")
         if token is None:
             break
         r = client.list_contacts(ContactListName=contact_list_name, NextToken=token)
-        add_contacts(r)
-
-    return contacts
+        yield from add_contacts(r)
 
 
 def get_bulk_entries(contacts):
@@ -74,21 +73,22 @@ def get_bulk_entries(contacts):
 def send_bulk_email(
     client, from_email, contact_list_name, topic, template_name, default_attributes
 ):
-    contacts = list_contacts(client, contact_list_name, topic)
-    # TODO remove me!
-    entries = [
-        e for e in get_bulk_entries(contacts) if "kelly" in e["Destination"]["ToAddresses"][0]
-    ]
-    return client.send_bulk_email(
-        FromEmailAddress=from_email,
-        DefaultContent={
-            "Template": {
-                "TemplateName": template_name,
-                "TemplateData": default_attributes,
-            }
-        },
-        BulkEmailEntries=entries,
-    )
+    # list_contacts yields no more than 50 contacts at a time!
+    for contacts in list_contacts(client, contact_list_name, topic):
+        # TODO remove me!
+        entries = [
+            e for e in get_bulk_entries(contacts) if "kelly" in e["Destination"]["ToAddresses"][0]
+        ]
+        return client.send_bulk_email(
+            FromEmailAddress=from_email,
+            DefaultContent={
+                "Template": {
+                    "TemplateName": template_name,
+                    "TemplateData": default_attributes,
+                }
+            },
+            BulkEmailEntries=entries,  # get_bulk_entries(contacts),
+        )
 
 
 parser = reqparse.RequestParser()
