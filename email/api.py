@@ -89,6 +89,42 @@ send_parser.add_argument("template_name", type=str, help="template name", requir
 send_parser.add_argument("from_email", type=str, help="from address", required=True)
 
 
+def get_attribute_data(client, contact_list, email):
+    return client.get_contact(ContactListName=contact_list, EmailAddress=email)["AttributesData"]
+
+
+def list_contacts(client, contact_list, topic=None):
+    contacts = []
+
+    def add_contacts(r):
+        for contact in r["Contacts"]:
+            contact["AttributesData"] = get_attribute_data(
+                client, contact_list, contact["EmailAddress"]
+            )
+            contacts.append(contact)
+
+    filter = {}
+    if topic is not None:
+        filter = {
+            "FilteredStatus": "OPT_IN",
+            "TopicFilter": {"TopicName": topic, "UseDefaultIfPreferenceUnavailable": True},
+        }
+    r = client.list_contacts(
+        ContactListName=contact_list,
+        Filter=filter,
+    )
+    add_contacts(r)
+
+    while True:
+        token = r.get("NextToken")
+        if token is None:
+            break
+        r = client.list_contacts(ContactListName=contact_list, NextToken=token)
+        add_contacts(r)
+
+    return contacts
+
+
 class Send(Resource):
     def post(self):
         """Send a templated mass email from `from_email` to `contact_list_name`"""
