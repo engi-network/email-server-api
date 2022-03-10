@@ -11,6 +11,8 @@ jupyterlab = "*"
 flask-restful = "*"
 pytest = "*"
 python-dotenv = "*"
+celery = {extras = ["sqs"], version = "*"}
+pycurl = "*"
 
 [dev-packages]
 
