@@ -9,6 +9,7 @@ CONTACT_LIST_NAME = "engi-newsletter"
 TEMPLATE_NAME = "engi-newsletter-welcome-template"
 TOPICS = [CONTACT_LIST_NAME]
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
+DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
 
 
@@ -47,9 +48,10 @@ def test_should_be_able_to_send_msg():
             f"{URL}/send",
             data={
                 "contact_list_name": CONTACT_LIST_NAME,
-                "topics": TOPICS,
+                "topic": CONTACT_LIST_NAME,
                 "template_name": TEMPLATE_NAME,
                 "from_email": FROM_EMAIL,
+                "default_attributes": DEFAULT_ATTRS,
             },
         ).status_code
         == 200
