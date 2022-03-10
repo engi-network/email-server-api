@@ -1,18 +1,33 @@
+import boto3
 from flask import current_app as app
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, fields
+from flask_restful import marshal as _marshal
+from flask_restful import reqparse
+
+ses_client = boto3.client("sesv2")
 
 
-def get_attribute_data(client, contact_list, email):
-    return client.get_contact(ContactListName=contact_list, EmailAddress=email)["AttributesData"]
+def marshal(r):
+    resource_fields = {
+        "ResponseMetadata": fields.Raw,
+        "BulkEmailEntryResults": fields.Raw,
+    }
+    return _marshal(r, resource_fields), r["ResponseMetadata"]["HTTPStatusCode"]
 
 
-def list_contacts(client, contact_list, topic=None):
+def get_attribute_data(client, contact_list_name, email):
+    return client.get_contact(ContactListName=contact_list_name, EmailAddress=email)[
+        "AttributesData"
+    ]
+
+
+def list_contacts(client, contact_list_name, topic=None):
     contacts = []
 
     def add_contacts(r):
         for contact in r["Contacts"]:
             contact["AttributesData"] = get_attribute_data(
-                client, contact_list, contact["EmailAddress"]
+                client, contact_list_name, contact["EmailAddress"]
             )
             contacts.append(contact)
 
@@ -23,7 +38,7 @@ def list_contacts(client, contact_list, topic=None):
             "TopicFilter": {"TopicName": topic, "UseDefaultIfPreferenceUnavailable": True},
         }
     r = client.list_contacts(
-        ContactListName=contact_list,
+        ContactListName=contact_list_name,
         Filter=filter,
     )
     add_contacts(r)
@@ -32,7 +47,7 @@ def list_contacts(client, contact_list, topic=None):
         token = r.get("NextToken")
         if token is None:
             break
-        r = client.list_contacts(ContactListName=contact_list, NextToken=token)
+        r = client.list_contacts(ContactListName=contact_list_name, NextToken=token)
         add_contacts(r)
 
     return contacts
@@ -56,8 +71,10 @@ def get_bulk_entries(contacts):
     return entries
 
 
-def send_bulk_email(client, from_email, contact_list, topic, template_name, default_attributes):
-    contacts = list_contacts(client, contact_list, topic)
+def send_bulk_email(
+    client, from_email, contact_list_name, topic, template_name, default_attributes
+):
+    contacts = list_contacts(client, contact_list_name, topic)
     # TODO remove me!
     entries = [
         e for e in get_bulk_entries(contacts) if "kelly" in e["Destination"]["ToAddresses"][0]
@@ -79,7 +96,7 @@ parser.add_argument("contact_list_name", type=str, help="contact list name", req
 parser.add_argument("template_name", type=str, help="template name", required=True)
 parser.add_argument("from_email", type=str, help="from address", required=True)
 parser.add_argument("default_attributes", type=str, help="default attributes", required=True)
-parser.add_argument("topic", type="str", help="topic to filter contacts", required=True)
+parser.add_argument("topic", type=str, help="topic to filter contacts", required=True)
 
 
 class Send(Resource):
@@ -87,4 +104,13 @@ class Send(Resource):
         """Send a templated mass email from `from_email` to `contact_list_name`"""
         args = parser.parse_args()
         app.logger.info(f"sending to {args=}")
-        return "", 200
+        return marshal(
+            send_bulk_email(
+                ses_client,
+                args["from_email"],
+                args["contact_list_name"],
+                args["topic"],
+                args["template_name"],
+                args["default_attributes"],
+            )
+        )

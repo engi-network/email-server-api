@@ -43,19 +43,18 @@ class TestContact:
 
 
 def test_should_be_able_to_send_msg():
-    assert (
-        requests.post(
-            f"{URL}/send",
-            data={
-                "contact_list_name": CONTACT_LIST_NAME,
-                "topic": CONTACT_LIST_NAME,
-                "template_name": TEMPLATE_NAME,
-                "from_email": FROM_EMAIL,
-                "default_attributes": DEFAULT_ATTRS,
-            },
-        ).status_code
-        == 200
+    r = requests.post(
+        f"{URL}/send",
+        data={
+            "contact_list_name": CONTACT_LIST_NAME,
+            "topic": CONTACT_LIST_NAME,
+            "template_name": TEMPLATE_NAME,
+            "from_email": FROM_EMAIL,
+            "default_attributes": DEFAULT_ATTRS,
+        },
     )
+    assert r.status_code == 200
+    assert all([k["Status"] == "SUCCESS" for k in r.json()["BulkEmailEntryResults"]])
 
 
 def test_should_be_able_to_ping_server():
