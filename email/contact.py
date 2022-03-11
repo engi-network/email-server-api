@@ -83,9 +83,17 @@ class Contact(Resource):
             UnsubscribeAll=args.get("unsubscribe_all", False),
         )
         attributes = args.get("attributes")
-        if attributes is not None:
-            kwargs["AttributesData"] = attributes
+
         try:
+            if attributes:
+                kwargs["AttributesData"] = attributes
+            else:
+                # this is annoying -- need to supply AttributesData else it gets set to None
+                r = ses_client.get_contact(
+                    ContactListName=args["contact_list_name"], EmailAddress=args["email"]
+                )
+                kwargs["AttributesData"] = r["AttributesData"]
+            app.logger.info(f"{kwargs=}")
             return marshal(ses_client.update_contact(**kwargs))
         except ses_client.exceptions.NotFoundException:
             abort(404, message="not found")

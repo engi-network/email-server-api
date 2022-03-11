@@ -15,6 +15,10 @@ DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
 
 
+def test_should_be_able_to_ping_server():
+    assert requests.get(f"{URL}/ping").json() == "pong"
+
+
 class TestContact:
     endpoint = f"{URL}/contact"
 
@@ -63,27 +67,22 @@ class TestContact:
         )
 
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
+    def test_should_be_able_to_send_msg(self):
+        r = requests.post(
+            f"{URL}/send",
+            data={
+                "contact_list_name": CONTACT_LIST_NAME,
+                "topic": CONTACT_LIST_NAME,
+                "template_name": TEMPLATE_NAME,
+                "from_email": FROM_EMAIL,
+                "default_attributes": DEFAULT_ATTRS,
+            },
+        )
+        assert r.status_code == 202
+        # fudge enough time for the backend to send a test message before the
+        # fixture is torn down and the contact we're sending to is deleted
+        time.sleep(2)
+
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_send_msg"])
     def test_should_be_able_to_delete_contact(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
-
-
-@pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
-def test_should_be_able_to_send_msg():
-    r = requests.post(
-        f"{URL}/send",
-        data={
-            "contact_list_name": CONTACT_LIST_NAME,
-            "topic": CONTACT_LIST_NAME,
-            "template_name": TEMPLATE_NAME,
-            "from_email": FROM_EMAIL,
-            "default_attributes": DEFAULT_ATTRS,
-        },
-    )
-    assert r.status_code == 202
-    # fudge enough time for the backend to send a test message before the
-    # fixture is torn down and the contact we're sending to is deleted
-    time.sleep(2)
-
-
-def test_should_be_able_to_ping_server():
-    assert requests.get(f"{URL}/ping").json() == "pong"
