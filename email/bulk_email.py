@@ -66,10 +66,6 @@ def send_bulk_email(from_email, contact_list_name, topic, template_name, default
     """List contacts in `contact_list_name` for `topic` and send a templated email from `from_email`"""
     # list_contacts yields no more than 50 contacts at a time!
     for contacts in list_contacts(contact_list_name, topic):
-        # TODO remove me!
-        entries = [
-            e for e in get_bulk_entries(contacts) if "kelly" in e["Destination"]["ToAddresses"][0]
-        ]
         return ses_client.send_bulk_email(
             FromEmailAddress=from_email,
             DefaultContent={
@@ -78,5 +74,5 @@ def send_bulk_email(from_email, contact_list_name, topic, template_name, default
                     "TemplateData": default_attributes,
                 }
             },
-            BulkEmailEntries=entries,  # get_bulk_entries(contacts), # TODO
+            BulkEmailEntries=get_bulk_entries(contacts),
         )
