@@ -8,8 +8,9 @@
 
 ### Environment
 
-You'll need the AWS credentials, see below:
+You'll need the AWS credentials, see below
 
+Create a `.env` file:
 ```
 FLASK_DEBUG=1
 FLASK_APP=api.py
@@ -21,7 +22,7 @@ AWS_DEFAULT_REGION="us-west-2"
 
 ### Start the email server and background worker
 
-Run these locally or in Docker (not both).
+Run these locally or in Docker (not both)
 
 #### Docker
 
