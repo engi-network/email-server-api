@@ -1,11 +1,12 @@
 import json
+import os
 import time
 
 import pytest
 import requests
 
 URL = "http://127.0.0.1:8000"
-EMAIL = "christopherkelly@engi.network"
+EMAIL = os.environ["EMAIL"]
 FROM_EMAIL = "g@engi.network"
 CONTACT_LIST_NAME = "engi-newsletter"
 TEMPLATE_NAME = "engi-newsletter-welcome-template"

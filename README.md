@@ -22,6 +22,7 @@ Create a `.env` file:
 FLASK_DEBUG=1
 FLASK_APP=api.py
 PYTHONPATH=email
+EMAIL="christopherkelly@engi.network"
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -47,5 +48,7 @@ Run the background worker in a separate terminal:
 `pipenv run celery -A tasks worker --loglevel=INFO`
 
 ### Run the tests
+
+An email should be sent to the address in the `EMAIL` var in your `.env` file.
 
 `pipenv run pytest -v`
