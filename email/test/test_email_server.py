@@ -15,25 +15,25 @@ DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
 
 
-@pytest.fixture
-def create_contact_request():
-    r = requests.post(
-        TestContact.endpoint,
-        data={
-            **DATA,
-            "topics": TOPICS,
-            "attributes": ATTRS,
-        },
-    )
-    yield r
-    assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
-
-
 class TestContact:
     endpoint = f"{URL}/contact"
 
-    def test_should_be_able_to_check_contact(self, create_contact_request):
-        assert create_contact_request.status_code == 200
+    @pytest.mark.dependency()
+    def test_should_be_able_to_add_contact(self):
+        assert (
+            requests.post(
+                TestContact.endpoint,
+                data={
+                    **DATA,
+                    "topics": TOPICS,
+                    "attributes": ATTRS,
+                },
+            ).status_code
+            == 200
+        )
+
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
+    def test_should_be_able_to_check_contact(self):
         r = requests.get(TestContact.endpoint, params=DATA)
         assert r.status_code == 200
         meta = r.json()
@@ -42,9 +42,13 @@ class TestContact:
         assert [d["TopicName"] for d in meta["TopicPreferences"]] == TOPICS
         assert meta["AttributesData"] == ATTRS
 
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
+    def test_should_be_able_to_delete_contact(self):
+        assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
 
-def test_should_be_able_to_send_msg(create_contact_request):
-    assert create_contact_request.status_code == 200
+
+@pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
+def test_should_be_able_to_send_msg():
     r = requests.post(
         f"{URL}/send",
         data={

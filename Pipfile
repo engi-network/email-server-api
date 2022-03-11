@@ -5,12 +5,12 @@ name = "pypi"
 
 [packages]
 boto3 = {extras = ["crt"], version = "*"}
-
 flask-restful = "*"
 pytest = "*"
 python-dotenv = "*"
 celery = {extras = ["sqs"], version = "*"}
 pycurl = "*"
+pytest-dependency = "*"
 
 [dev-packages]
 jupyter-contrib-nbextensions = "*"
