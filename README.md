@@ -43,7 +43,7 @@ Start the REST API server:
 
 Run the background worker in a separate terminal:
 
-`PYTHONPATH=email celery -A tasks worker --loglevel=INFO`
+`pipenv run celery -A tasks worker --loglevel=INFO`
 
 ### Run the tests
 
