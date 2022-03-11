@@ -9,7 +9,7 @@ EMAIL = "christopherkelly@engi.network"
 FROM_EMAIL = "g@engi.network"
 CONTACT_LIST_NAME = "engi-newsletter"
 TEMPLATE_NAME = "engi-newsletter-welcome-template"
-TOPICS = [CONTACT_LIST_NAME]
+TOPICS = [CONTACT_LIST_NAME, "engi-programmer", "engi-business", "engi-investor", "engi-curious"]
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
@@ -19,7 +19,7 @@ class TestContact:
     endpoint = f"{URL}/contact"
 
     @pytest.mark.dependency()
-    def test_should_be_able_to_add_contact(self):
+    def test_should_be_able_to_create_contact(self):
         assert (
             requests.post(
                 TestContact.endpoint,
@@ -32,22 +32,42 @@ class TestContact:
             == 200
         )
 
-    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
-    def test_should_be_able_to_check_contact(self):
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
+    def test_should_be_able_to_read_contact(self):
         r = requests.get(TestContact.endpoint, params=DATA)
         assert r.status_code == 200
         meta = r.json()
         assert meta["ContactListName"] == CONTACT_LIST_NAME
         assert meta["EmailAddress"] == EMAIL
-        assert [d["TopicName"] for d in meta["TopicPreferences"]] == TOPICS
+        assert set([d["TopicName"] for d in meta["TopicPreferences"]]) == set(TOPICS)
         assert meta["AttributesData"] == ATTRS
 
-    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
+    def test_should_be_able_to_update_contact(self):
+        topic = TOPICS[-1]
+        # unsubscribe from topic
+        r = requests.put(
+            TestContact.endpoint,
+            data={**DATA, "topics_unsubscribe": [topic]},
+        )
+        assert r.status_code == 200
+        # get the contact again
+        r = requests.get(TestContact.endpoint, params=DATA)
+        meta = r.json()
+        # make sure we are indeed now unsubscribed
+        assert (
+            dict([(d["TopicName"], d["SubscriptionStatus"]) for d in meta["TopicPreferences"]])[
+                topic
+            ]
+            == "OPT_OUT"
+        )
+
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
     def test_should_be_able_to_delete_contact(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
 
 
-@pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_add_contact"])
+@pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
 def test_should_be_able_to_send_msg():
     r = requests.post(
         f"{URL}/send",

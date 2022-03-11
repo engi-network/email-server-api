@@ -13,6 +13,10 @@ parser.add_argument("topics", action="append", help="list of topics")
 parser.add_argument(
     "attributes", type=str, default="", help="contact attributes encoded as string"
 )
+parser.add_argument(
+    "unsubscribe_all", type=bool, default=False, help="unsubscribe contact from all list topics"
+)
+parser.add_argument("topics_unsubscribe", action="append", help="list of topics to unsubscribe")
 
 
 def marshal(r):
@@ -28,6 +32,13 @@ def marshal(r):
         "LastUpdatedTimestamp": fields.DateTime(dt_format="iso8601"),
     }
     return _marshal(r, resource_fields), r["ResponseMetadata"]["HTTPStatusCode"]
+
+
+def get_topics(topics, subscribe=True):
+    if not topics:
+        return []
+    s = "IN" if subscribe else "OUT"
+    return [{"TopicName": topic, "SubscriptionStatus": f"OPT_{s}"} for topic in topics]
 
 
 class Contact(Resource):
@@ -53,15 +64,31 @@ class Contact(Resource):
                 ses_client.create_contact(
                     ContactListName=args["contact_list_name"],
                     EmailAddress=args["email"],
-                    TopicPreferences=[
-                        {"TopicName": topic, "SubscriptionStatus": "OPT_IN"}
-                        for topic in args.get("topics", [])
-                    ],
+                    TopicPreferences=get_topics(args.get("topics", [])),
                     AttributesData=args.get("attributes", ""),
                 )
             )
         except ses_client.exceptions.AlreadyExistsException:
             abort(409, message="already exists")
+
+    def put(self):
+        """Update an existing contact `email` on list `contact_list_name`"""
+        args = parser.parse_args()
+        app.logger.info(f"updating {args=}")
+        kwargs = dict(
+            ContactListName=args["contact_list_name"],
+            EmailAddress=args["email"],
+            TopicPreferences=get_topics(args.get("topics", []))
+            + get_topics(args.get("topics_unsubscribe", []), subscribe=False),
+            UnsubscribeAll=args.get("unsubscribe_all", False),
+        )
+        attributes = args.get("attributes")
+        if attributes is not None:
+            kwargs["AttributesData"] = attributes
+        try:
+            return marshal(ses_client.update_contact(**kwargs))
+        except ses_client.exceptions.NotFoundException:
+            abort(404, message="not found")
 
     def delete(self):
         """Delete `email` from list `contact_list_name`"""
