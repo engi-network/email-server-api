@@ -21,6 +21,7 @@ Create a `.env` file:
 ```
 FLASK_DEBUG=1
 FLASK_APP=api.py
+PYTHONPATH=email
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
