@@ -6,6 +6,19 @@
 
 `pipenv install`
 
+### Environment
+
+You'll need the AWS credentials, see below:
+
+```
+FLASK_DEBUG=1
+FLASK_APP=api.py
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION="us-west-2"
+```
+
 ### Start the email server and background worker
 
 Run these locally or in Docker (not both).
@@ -18,7 +31,7 @@ Run these locally or in Docker (not both).
 
 Start the REST API server:
 
-`PYTHONPATH=email FLASK_APP=api.py pipenv run flask run -h 0.0.0.0 -p 8000`
+`pipenv run flask run -h 0.0.0.0 -p 8000`
 
 Run the background worker in a separate terminal:
 
