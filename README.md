@@ -49,6 +49,6 @@ Run the background worker in a separate terminal:
 
 ### Run the tests
 
-An email should be sent to the address in the `EMAIL` var in your `.env` file.
+An email should be sent to the address in the `EMAIL` var in your `.env` file
 
 `pipenv run pytest -v`

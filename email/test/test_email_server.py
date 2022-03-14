@@ -30,8 +30,6 @@ class TestContact:
                 TestContact.endpoint,
                 data={
                     **DATA,
-                    "topics": TOPICS,
-                    "attributes": ATTRS,
                 },
             ).status_code
             == 200
@@ -44,11 +42,23 @@ class TestContact:
         meta = r.json()
         assert meta["ContactListName"] == CONTACT_LIST_NAME
         assert meta["EmailAddress"] == EMAIL
+
+    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
+    def test_should_be_able_to_update_contact_subscribe(self):
+        # subscribe to topics and update attributes
+        r = requests.put(
+            TestContact.endpoint,
+            data={**DATA, "topics": TOPICS, "attributes": ATTRS},
+        )
+        assert r.status_code == 200
+        # get the contact again
+        r = requests.get(TestContact.endpoint, params=DATA)
+        meta = r.json()
         assert set([d["TopicName"] for d in meta["TopicPreferences"]]) == set(TOPICS)
         assert meta["AttributesData"] == ATTRS
 
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
-    def test_should_be_able_to_update_contact(self):
+    def test_should_be_able_to_update_contact_unsubscribe(self):
         topic = TOPICS[-1]
         # unsubscribe from topic
         r = requests.put(
