@@ -11,6 +11,14 @@ The `email` directory contains a server to implement a simple REST API for email
 
 ### Install library dependencies from Pipfile
 
+#### If you're using a Mac
+
+And intend to run the Celery background worker (see below) outside of Docker:
+
+```
+export PYCURL_SSL_LIBRARY=openssl
+```
+
 `pipenv install`
 
 ### Environment
