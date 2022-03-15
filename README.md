@@ -16,6 +16,11 @@ The `email` directory contains a server to implement a simple REST API for email
 And intend to run the Celery background worker (see below) outside of Docker:
 
 ```
+brew install openssl@1.1
+export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
+export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@1.1/lib/pkgconfig"
 export PYCURL_SSL_LIBRARY=openssl
 ```
 
