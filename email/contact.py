@@ -4,6 +4,8 @@ from flask_restful import Resource, abort, fields
 from flask_restful import marshal as _marshal
 from flask_restful import reqparse
 
+from tasks import async_send_welcome_email
+
 ses_client = boto3.client("sesv2")
 
 parser = reqparse.RequestParser()
@@ -14,9 +16,12 @@ parser.add_argument(
     "attributes", type=str, default="", help="contact attributes encoded as string"
 )
 parser.add_argument(
-    "unsubscribe_all", type=bool, default=False, help="unsubscribe contact from all list topics"
+    "unsubscribe_all", type=int, default=0, help="unsubscribe contact from all list topics"
 )
 parser.add_argument("topics_unsubscribe", action="append", help="list of topics to unsubscribe")
+parser.add_argument(
+    "send_welcome_email", type=int, default=1, help="send welcome email on subscribe"
+)
 
 
 def marshal(r):
@@ -60,14 +65,18 @@ class Contact(Resource):
         args = parser.parse_args()
         app.logger.info(f"adding {args=}")
         try:
-            return marshal(
+            attrs = args.get("attributes", "")
+            r = marshal(
                 ses_client.create_contact(
                     ContactListName=args["contact_list_name"],
                     EmailAddress=args["email"],
                     TopicPreferences=get_topics(args.get("topics", [])),
-                    AttributesData=args.get("attributes", ""),
+                    AttributesData=attrs,
                 )
             )
+            if args.get("send_welcome_email", True):
+                async_send_welcome_email.delay(args["email"], attrs)
+            return r
         except ses_client.exceptions.AlreadyExistsException:
             abort(409, message="already exists")
 

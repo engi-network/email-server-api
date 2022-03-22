@@ -7,7 +7,7 @@ import requests
 
 URL = "http://127.0.0.1:8000"
 EMAIL = os.environ["EMAIL"]
-FROM_EMAIL = "g@engi.network"
+FROM_EMAIL = os.environ.get("FROM_EMAIL", EMAIL)
 CONTACT_LIST_NAME = "engi-newsletter"
 TEMPLATE_NAME = "engi-newsletter-welcome-template"
 TOPICS = [CONTACT_LIST_NAME, "engi-programmer", "engi-business", "engi-investor", "engi-curious"]
@@ -30,6 +30,7 @@ class TestContact:
                 TestContact.endpoint,
                 data={
                     **DATA,
+                    "send_welcome_email": 0,
                 },
             ).status_code
             == 200
@@ -96,4 +97,27 @@ class TestContact:
 
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_send_msg"])
     def test_should_be_able_to_delete_contact(self):
+        assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
+
+    @pytest.mark.dependency()
+    def test_should_be_able_to_create_contact_with_welcome_message(self):
+        assert (
+            requests.post(
+                TestContact.endpoint,
+                data={
+                    **DATA,
+                    "send_welcome_email": 1,
+                    "attributes": ATTRS,
+                },
+            ).status_code
+            == 200
+        )
+        # fudge enough time for the backend to send a test message before the
+        # fixture is torn down and the contact we're sending to is deleted
+        time.sleep(2)
+
+    @pytest.mark.dependency(
+        depends=["TestContact::test_should_be_able_to_create_contact_with_welcome_message"]
+    )
+    def test_should_be_able_to_delete_contact2(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
