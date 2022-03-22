@@ -36,11 +36,14 @@ FLASK_DEBUG=1
 FLASK_APP=api.py
 PYTHONPATH=email
 EMAIL="christopherkelly@engi.network"
+FROM_EMAIL=${EMAIL}
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_DEFAULT_REGION="us-west-2"
 ```
+
+`${FROM_EMAIL}` needs to be verified for sending in SES.
 
 ### Start the email server and background worker
 
