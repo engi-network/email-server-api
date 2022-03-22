@@ -78,6 +78,7 @@ class TestContact:
             == "OPT_OUT"
         )
 
+    @pytest.mark.skip(reason="don't send bulk messages once customers are on the list")
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
     def test_should_be_able_to_send_msg(self):
         r = requests.post(
