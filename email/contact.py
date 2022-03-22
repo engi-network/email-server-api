@@ -3,24 +3,28 @@ from flask import current_app as app
 from flask_restful import Resource, abort, fields
 from flask_restful import marshal as _marshal
 from flask_restful import reqparse
+from flask_restful.inputs import boolean
 
+from default_params import CONTACT_LIST_NAME
 from tasks import async_send_welcome_email
 
 ses_client = boto3.client("sesv2")
 
 parser = reqparse.RequestParser()
 parser.add_argument("email", type=str, help="email address")
-parser.add_argument("contact_list_name", type=str, help="contact list name")
+parser.add_argument(
+    "contact_list_name", default=CONTACT_LIST_NAME, type=str, help="contact list name"
+)
 parser.add_argument("topics", action="append", help="list of topics")
 parser.add_argument(
     "attributes", type=str, default="", help="contact attributes encoded as string"
 )
 parser.add_argument(
-    "unsubscribe_all", type=int, default=0, help="unsubscribe contact from all list topics"
+    "unsubscribe_all", type=boolean, default=False, help="unsubscribe contact from all list topics"
 )
 parser.add_argument("topics_unsubscribe", action="append", help="list of topics to unsubscribe")
 parser.add_argument(
-    "send_welcome_email", type=int, default=1, help="send welcome email on subscribe"
+    "send_welcome_email", type=boolean, default=True, help="send welcome email on subscribe"
 )
 
 

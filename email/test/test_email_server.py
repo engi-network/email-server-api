@@ -30,7 +30,7 @@ class TestContact:
                 TestContact.endpoint,
                 data={
                     **DATA,
-                    "send_welcome_email": 0,
+                    "send_welcome_email": False,
                 },
             ).status_code
             == 200
@@ -96,7 +96,9 @@ class TestContact:
         # fixture is torn down and the contact we're sending to is deleted
         time.sleep(2)
 
-    @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_send_msg"])
+    @pytest.mark.dependency(
+        depends=["TestContact::test_should_be_able_to_update_contact_unsubscribe"]
+    )
     def test_should_be_able_to_delete_contact(self):
         assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
 
@@ -107,7 +109,7 @@ class TestContact:
                 TestContact.endpoint,
                 data={
                     **DATA,
-                    "send_welcome_email": 1,
+                    "send_welcome_email": True,
                     "attributes": ATTRS,
                 },
             ).status_code
