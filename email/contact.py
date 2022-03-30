@@ -1,3 +1,5 @@
+from email import message
+
 import boto3
 from flask import current_app as app
 from flask_restful import Resource, abort, fields
@@ -68,8 +70,11 @@ class Contact(Resource):
         """Create a new `email` on list `contact_list_name`"""
         args = parser.parse_args()
         app.logger.info(f"adding {args=}")
+        send_welcome_email = args.get("send_welcome_email", True)
+        attrs = args.get("attributes", "")
+        if send_welcome_email and not attrs:
+            abort(400, message="attributes param required to send welcome email")
         try:
-            attrs = args.get("attributes", "")
             r = marshal(
                 ses_client.create_contact(
                     ContactListName=args["contact_list_name"],
@@ -78,7 +83,7 @@ class Contact(Resource):
                     AttributesData=attrs,
                 )
             )
-            if args.get("send_welcome_email", True):
+            if send_welcome_email:
                 async_send_welcome_email.delay(args["email"], attrs)
             return r
         except ses_client.exceptions.AlreadyExistsException:
