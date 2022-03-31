@@ -37,6 +37,7 @@ FLASK_APP=api.py
 PYTHONPATH=email
 EMAIL="christopherkelly@engi.network"
 FROM_EMAIL=${EMAIL}
+QUEUE_NAME_PREFIX=dev
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -62,6 +63,10 @@ Start the REST API server:
 Run the background worker in a separate terminal:
 
 `pipenv run celery -A tasks worker --loglevel=INFO`
+
+Note the Celery broker uses an SQS queue named using the environment variable
+`${QUEUE_NAME_PREFIX}`. Be careful about having multiple instances of `celery`
+pulling jobs from the same queue as they will race each other.
 
 ### Run the tests
 
