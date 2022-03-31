@@ -4,13 +4,9 @@ import time
 
 import pytest
 import requests
+from default_params import CONTACT_LIST_NAME, EMAIL, FROM_EMAIL, TEMPLATE_NAME, TOPICS
 
 URL = "http://127.0.0.1:8000"
-EMAIL = os.environ["EMAIL"]
-FROM_EMAIL = os.environ.get("FROM_EMAIL", EMAIL)
-CONTACT_LIST_NAME = "engi-newsletter"
-TEMPLATE_NAME = "engi-newsletter-welcome-template"
-TOPICS = [CONTACT_LIST_NAME, "engi-programmer", "engi-business", "engi-investor", "engi-curious"]
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})

@@ -1,5 +1,3 @@
-from email import message
-
 import boto3
 from flask import current_app as app
 from flask_restful import Resource, abort, fields
@@ -7,7 +5,7 @@ from flask_restful import marshal as _marshal
 from flask_restful import reqparse
 from flask_restful.inputs import boolean
 
-from default_params import CONTACT_LIST_NAME
+from default_params import CONTACT_LIST_NAME, TOPICS
 from tasks import async_send_welcome_email
 
 ses_client = boto3.client("sesv2")
@@ -17,9 +15,9 @@ parser.add_argument("email", type=str, help="email address")
 parser.add_argument(
     "contact_list_name", default=CONTACT_LIST_NAME, type=str, help="contact list name"
 )
-parser.add_argument("topics", action="append", help="list of topics")
+parser.add_argument("topics", action="append", default=TOPICS, help="list of topics")
 parser.add_argument(
-    "attributes", type=str, default="", help="contact attributes encoded as string"
+    "attributes", type=str, default="{}", help="contact attributes encoded as string"
 )
 parser.add_argument(
     "unsubscribe_all", type=boolean, default=False, help="unsubscribe contact from all list topics"
@@ -70,21 +68,20 @@ class Contact(Resource):
         """Create a new `email` on list `contact_list_name`"""
         args = parser.parse_args()
         app.logger.info(f"adding {args=}")
-        send_welcome_email = args.get("send_welcome_email", True)
         attrs = args.get("attributes", "")
-        if send_welcome_email and not attrs:
-            abort(400, message="attributes param required to send welcome email")
+        email = args["email"]
         try:
             r = marshal(
                 ses_client.create_contact(
                     ContactListName=args["contact_list_name"],
-                    EmailAddress=args["email"],
+                    EmailAddress=email,
                     TopicPreferences=get_topics(args.get("topics", [])),
                     AttributesData=attrs,
                 )
             )
-            if send_welcome_email:
-                async_send_welcome_email.delay(args["email"], attrs)
+            if args.get("send_welcome_email", True):
+                app.logger.info(f"sending welcome email to {email=} {attrs=}")
+                async_send_welcome_email.delay(email, attrs)
             return r
         except ses_client.exceptions.AlreadyExistsException:
             abort(409, message="already exists")
