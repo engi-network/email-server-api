@@ -7,14 +7,12 @@ services:
     container_name: web
     ports:
       - 8000:5000
-    command: flask run -h 0.0.0.0
+    command: gunicorn --bind 0.0.0.0:5000 wsgi:app
     volumes:
       - .:/code
     env_file: .env
     environment:
-      - FLASK_DEBUG=1
       - PYTHONPATH=/code/email
-      - FLASK_APP=api.py
       - QUEUE_NAME_PREFIX=prod
 
   worker:
