@@ -49,6 +49,10 @@ locals {
     {
       name  = "QUEUE_NAME_PREFIX"
       value = "prod"
+    },
+    {
+      name  = "EMAIL"
+      value = var.email
     }
   ]
   logConfiguration = {
@@ -79,9 +83,14 @@ resource "aws_ecs_task_definition" "email_server" {
     portMappings = [
       {
         containerPort = var.port
+        hostPort      = var.port
+        protocol      = "tcp"
       }
     ]
+    essential        = true
     image            = local.image
+    cpu              = 10
+    memory           = 512
     entryPoint       = local.entryPoint
     command          = ["celery -A tasks worker --loglevel=INFO"]
     secrets          = local.secrets
@@ -89,7 +98,10 @@ resource "aws_ecs_task_definition" "email_server" {
     logConfiguration = local.logConfiguration
     }, {
     name             = "web"
+    essential        = true
     image            = local.image
+    cpu              = 10
+    memory           = 512
     entryPoint       = local.entryPoint
     command          = ["gunicorn --bind 0.0.0.0:${var.port} wsgi:app"]
     secrets          = local.secrets
@@ -109,15 +121,15 @@ resource "aws_ecs_task_definition" "email_server" {
   network_mode = "awsvpc"
 }
 
-resource "aws_ecs_cluster" "app" {
-  name = "app"
+resource "aws_ecs_cluster" "email_server" {
+  name = "email-server"
 }
 
 resource "aws_ecs_service" "email_server" {
   name            = "email-server"
   task_definition = aws_ecs_task_definition.email_server.arn
   launch_type     = "FARGATE"
-  cluster         = aws_ecs_cluster.app.id
+  cluster         = aws_ecs_cluster.email_server.id
   desired_count   = 1
 
   network_configuration {
@@ -162,4 +174,13 @@ data "aws_iam_policy" "ecs_task_execution_role" {
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = aws_iam_role.email_server_task_execution_role.name
   policy_arn = data.aws_iam_policy.ecs_task_execution_role.arn
+}
+
+data "aws_iam_policy" "ecs_task_secrets_role" {
+  arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_secrets_role" {
+  role       = aws_iam_role.email_server_task_execution_role.name
+  policy_arn = data.aws_iam_policy.ecs_task_secrets_role.arn
 }

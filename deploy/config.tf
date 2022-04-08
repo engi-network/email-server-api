@@ -24,6 +24,11 @@ variable "port" {
   default     = 5000
 }
 
+variable "email" {
+  description = "address from which to send email"
+  default     = "g@engi.network"
+}
+
 provider "aws" {
   region  = var.region
   profile = var.profile
