@@ -1,6 +1,4 @@
 .env
-terraform.tfvars
-.terraform*
 
 .vscode
 

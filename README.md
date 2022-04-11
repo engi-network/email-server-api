@@ -76,15 +76,4 @@ An email should be sent to the address in the `EMAIL` var in your `.env` file
 
 ### Deploy
 
-Terraform sources in the directory `deploy`
-
-Two input variables to supply on the command line, or you can put them in
-`deploy/terraform.tfvars` (but obviously don't check this file into Git):
-
-```
-aws_access_key_id     = ""
-aws_secret_access_key = ""
-```
-
-These are the AWS credentials for the Docker container (and not necessarily
-those required to run `terraform`).
+Terraform source now in a separate repo `engi-network/deploy`
