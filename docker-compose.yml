@@ -14,7 +14,6 @@ services:
     environment:
       - PYTHONPATH=/code/email
       - QUEUE_NAME_PREFIX=prod
-
   worker:
     build: .
     command: celery -A tasks worker --loglevel=INFO
@@ -26,3 +25,15 @@ services:
       - QUEUE_NAME_PREFIX=prod
     depends_on:
       - web
+  test:
+    build: .
+    command: pytest -s #-v email/test/test_email_server.py::test_should_be_able_to_ping_server
+    volumes:
+      - .:/code
+    env_file: .env
+    environment:
+      - QUEUE_NAME_PREFIX=prod
+      - HOST=web
+      - PORT=5000
+    depends_on:
+      - "worker"

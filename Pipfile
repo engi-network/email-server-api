@@ -12,6 +12,7 @@ celery = {extras = ["sqs"], version = "*"}
 pycurl = "*"
 pytest-dependency = "*"
 gunicorn = "*"
+requests = "*"
 
 [dev-packages]
 jupyter-contrib-nbextensions = "*"

@@ -6,7 +6,9 @@ import pytest
 import requests
 from default_params import CONTACT_LIST_NAME, EMAIL, FROM_EMAIL, TEMPLATE_NAME, TOPICS
 
-URL = "http://127.0.0.1:8000"
+HOST = os.environ.get("HOST", "127.0.0.1")
+PORT = os.environ.get("PORT", 8000)
+URL = f"http://{HOST}:{PORT}"
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
@@ -24,7 +26,7 @@ class TestContact:
         assert (
             requests.post(
                 TestContact.endpoint,
-                data={
+                json={
                     **DATA,
                     "send_welcome_email": False,
                 },
@@ -34,7 +36,7 @@ class TestContact:
 
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
     def test_should_be_able_to_read_contact(self):
-        r = requests.get(TestContact.endpoint, params=DATA)
+        r = requests.get(TestContact.endpoint, json=DATA)
         assert r.status_code == 200
         meta = r.json()
         assert meta["ContactListName"] == CONTACT_LIST_NAME
@@ -45,11 +47,11 @@ class TestContact:
         # subscribe to topics and update attributes
         r = requests.put(
             TestContact.endpoint,
-            data={**DATA, "topics": TOPICS, "attributes": ATTRS},
+            json={**DATA, "topics": TOPICS, "attributes": ATTRS},
         )
         assert r.status_code == 200
         # get the contact again
-        r = requests.get(TestContact.endpoint, params=DATA)
+        r = requests.get(TestContact.endpoint, json=DATA)
         meta = r.json()
         assert set([d["TopicName"] for d in meta["TopicPreferences"]]) == set(TOPICS)
         assert meta["AttributesData"] == ATTRS
@@ -60,11 +62,11 @@ class TestContact:
         # unsubscribe from topic
         r = requests.put(
             TestContact.endpoint,
-            data={**DATA, "topics_unsubscribe": [topic]},
+            json={**DATA, "topics_unsubscribe": [topic]},
         )
         assert r.status_code == 200
         # get the contact again
-        r = requests.get(TestContact.endpoint, params=DATA)
+        r = requests.get(TestContact.endpoint, json=DATA)
         meta = r.json()
         # make sure we are indeed now unsubscribed
         assert (
@@ -79,7 +81,7 @@ class TestContact:
     def test_should_be_able_to_send_msg(self):
         r = requests.post(
             f"{URL}/send",
-            data={
+            json={
                 "contact_list_name": CONTACT_LIST_NAME,
                 "topic": CONTACT_LIST_NAME,
                 "template_name": TEMPLATE_NAME,
@@ -96,14 +98,14 @@ class TestContact:
         depends=["TestContact::test_should_be_able_to_update_contact_unsubscribe"]
     )
     def test_should_be_able_to_delete_contact(self):
-        assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
+        assert requests.delete(TestContact.endpoint, json=DATA).status_code == 200
 
     @pytest.mark.dependency()
     def test_should_be_able_to_create_contact_with_welcome_message(self):
         assert (
             requests.post(
                 TestContact.endpoint,
-                data={
+                json={
                     **DATA,
                     "send_welcome_email": True,
                     "attributes": ATTRS,
@@ -119,4 +121,4 @@ class TestContact:
         depends=["TestContact::test_should_be_able_to_create_contact_with_welcome_message"]
     )
     def test_should_be_able_to_delete_contact2(self):
-        assert requests.delete(TestContact.endpoint, data=DATA).status_code == 200
+        assert requests.delete(TestContact.endpoint, json=DATA).status_code == 200
