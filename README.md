@@ -77,3 +77,12 @@ An email should be sent to the address in the `EMAIL` var in your `.env` file
 ### Deploy
 
 Terraform source now in a separate repo `engi-network/deploy`
+
+### CI/CD
+
+[CircleCI](https://app.circleci.com/pipelines/github/engi-network/website) is invoked each time you push to GitHub.
+
+Currently there are no filters applied, but eventually we'll want to make it so
+changes are only pushed to prod if a tag is applied.
+
+See the file `config.yml` in the directory `.circleci`
