@@ -14,9 +14,6 @@ parameters:
   terraform-setup:
     type: string
     default: deploy/setup/engi-website
-  env:
-    type: string
-    default: staging
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -66,7 +63,7 @@ jobs:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  build-test-push-workflow:
+  build-test-push-workflow-staging:
     jobs:
       - build-test:
           context:
@@ -75,15 +72,27 @@ workflows:
       - aws-ecr/build-and-push-image:
           requires:
             - build-test
-          repo: "email-server-<< pipeline.parameters.env >>"
+          repo: "email-server-staging"
           create-repo: true
-          tag: "latest"
+          tag: latest
           registry-id: AWS_ID
           context:
             - aws
-      - deploy:
-          requires:
-            - aws-ecr/build-and-push-image
+      # - deploy:
+      #     requires:
+      #       - aws-ecr/build-and-push-image
+      #     context:
+      #       - github
+      #       - terraform
+  build-push-workflow-production:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          # filters:
+          #   tags:
+          #     only: /^v.*/
+          repo: "email-server-production"
+          create-repo: true
+          tag: latest
+          registry-id: AWS_ID
           context:
-            - github
-            - terraform
+            - aws
