@@ -2,8 +2,7 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-# build the Docker image and run the tests
-# if all the tests pass, push the image to ECR
+# build the Docker image and push it to ECR
 # then invoke Terraform Cloud to deploy the new image
 
 orbs:
@@ -14,6 +13,34 @@ parameters:
   terraform-setup:
     type: string
     default: deploy/setup/engi-website
+
+commands:
+  terraform-deploy:
+    steps:
+      - run:
+          name: "Checkout Terraform sources"
+          command: |
+            git clone git@github.com:engi-network/deploy.git
+      - run:
+          name: "Display TF_WORKSPACE"
+          command: |
+            echo TF_WORKSPACE=$TF_WORKSPACE
+      - run:
+          name: Create .terraformrc file locally
+          command: |
+            echo "credentials \"app.terraform.io\" {token =
+            \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
+      - terraform/install:
+          arch: amd64
+          os: linux
+          terraform_version: 1.1.9
+      - terraform/init:
+          path: << pipeline.parameters.terraform-setup >>
+      - run:
+          # the terraform/apply command built into the official orb unsets TF_WORKSPACE that won't work here
+          name: "terraform apply"
+          command: |
+            terraform -chdir="<< pipeline.parameters.terraform-setup >>" apply -auto-approve
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -38,27 +65,20 @@ jobs:
       - run:
           name: "Start worker and test"
           command: "docker-compose up --exit-code-from test"
-  deploy:
+  deploy-staging:
     machine:
       image: ubuntu-2004:202201-01
+    environment:
+      TF_WORKSPACE: "engi-website-staging"
     steps:
-      - run:
-          name: "Checkout Terraform sources"
-          command: |
-            git clone git@github.com:engi-network/deploy.git
-      - run:
-          name: Create .terraformrc file locally
-          command: |
-            echo "credentials \"app.terraform.io\" {token =
-            \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
-      - terraform/install:
-          arch: amd64
-          os: linux
-          terraform_version: 1.1.9
-      - terraform/init:
-          path: << pipeline.parameters.terraform-setup >>
-      - terraform/apply:
-          path: << pipeline.parameters.terraform-setup >>
+      - terraform-deploy
+  deploy-production:
+    machine:
+      image: ubuntu-2004:202201-01
+    environment:
+      TF_WORKSPACE: "engi-website-production"
+    steps:
+      - terraform-deploy
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -70,29 +90,37 @@ workflows:
             - aws
             - github
       - aws-ecr/build-and-push-image:
+          name: "build-and-push-staging"
+          repo: "engi-website-staging"
           requires:
             - build-test
-          repo: "email-server-staging"
           create-repo: true
           tag: latest
           registry-id: AWS_ID
           context:
             - aws
       - aws-ecr/build-and-push-image:
-          requires:
-            - build-test
           # filters:
           #   tags:
           #     only: /^v.*/
-          repo: "email-server-production"
+          name: "build-and-push-production"
+          repo: "engi-website-production"
+          requires:
+            - build-test
           create-repo: true
           tag: latest
           registry-id: AWS_ID
           context:
             - aws
-      # - deploy:
-      #     requires:
-      #       - aws-ecr/build-and-push-image
-      #     context:
-      #       - github
-      #       - terraform
+      - deploy-staging:
+          requires:
+            - build-and-push-staging
+          context:
+            - github
+            - terraform
+      - deploy-production:
+          requires:
+            - build-and-push-production
+          context:
+            - github
+            - terraform
