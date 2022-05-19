@@ -100,9 +100,9 @@ workflows:
           context:
             - aws
       - aws-ecr/build-and-push-image:
-          # filters:
-          #   tags:
-          #     only: /^v.*/
+          filters:
+            tags:
+              only: /^v.*/
           name: "build-and-push-production"
           repo: "email-server-production"
           requires:
@@ -112,15 +112,18 @@ workflows:
           registry-id: AWS_ID
           context:
             - aws
-      # - deploy-staging:
-      #     requires:
-      #       - build-and-push-staging
-      #     context:
-      #       - github
-      #       - terraform
-      # - deploy-production:
-      #     requires:
-      #       - build-and-push-production
-      #     context:
-      #       - github
-      #       - terraform
+      - deploy-staging:
+          requires:
+            - build-and-push-staging
+          context:
+            - github
+            - terraform
+      - deploy-production:
+          filters:
+            tags:
+              only: /^v.*/
+          requires:
+            - build-and-push-production
+          context:
+            - github
+            - terraform
