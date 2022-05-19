@@ -91,7 +91,7 @@ workflows:
             - github
       - aws-ecr/build-and-push-image:
           name: "build-and-push-staging"
-          repo: "engi-website-staging"
+          repo: "email-server-staging"
           requires:
             - build-test
           create-repo: true
@@ -104,7 +104,7 @@ workflows:
           #   tags:
           #     only: /^v.*/
           name: "build-and-push-production"
-          repo: "engi-website-production"
+          repo: "email-server-production"
           requires:
             - build-test
           create-repo: true
