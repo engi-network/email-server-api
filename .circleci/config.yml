@@ -108,8 +108,6 @@ workflows:
               ignore: /.*/
           name: "build-and-push-production"
           repo: "email-server-production"
-          requires:
-            - build-test
           create-repo: true
           tag: latest
           registry-id: AWS_ID
