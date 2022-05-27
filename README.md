@@ -17,10 +17,11 @@ And intend to run the Celery background worker (see below) outside of Docker:
 
 ```
 brew install openssl@1.1
-export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH"
-export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@1.1/lib/pkgconfig"
+export SSL_HOME="/usr/local/Cellar/openssl@1.1/1.1.1o/" # your path may differ
+export PATH="$SSL_HOME/bin:$PATH"
+export LDFLAGS="-L$SSL_HOME/lib"
+export CPPFLAGS="-I$SSL_HOME/include"
+export PKG_CONFIG_PATH="$SSL_HOME/lib/pkgconfig"
 export PYCURL_SSL_LIBRARY=openssl
 ```
 
