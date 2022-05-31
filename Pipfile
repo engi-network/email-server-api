@@ -9,10 +9,10 @@ flask-restful = "*"
 pytest = "*"
 python-dotenv = "*"
 celery = {extras = ["sqs"], version = "*"}
-pycurl = "*"
 pytest-dependency = "*"
 gunicorn = "*"
 requests = "*"
+pycurl = "*"
 
 [dev-packages]
 jupyter-contrib-nbextensions = "*"

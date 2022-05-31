@@ -4,11 +4,19 @@ import time
 
 import pytest
 import requests
-from default_params import CONTACT_LIST_NAME, EMAIL, FROM_EMAIL, TEMPLATE_NAME, TOPICS
+from default_params import (
+    CONTACT_LIST_NAME,
+    EMAIL,
+    FROM_EMAIL,
+    TEMPLATE_NAME,
+    TEST_TOPIC,
+    TOPICS,
+)
 
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = os.environ.get("PORT", 8000)
 URL = f"http://{HOST}:{PORT}"
+TOPICS.append(TEST_TOPIC)
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
@@ -58,7 +66,7 @@ class TestContact:
 
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
     def test_should_be_able_to_update_contact_unsubscribe(self):
-        topic = TOPICS[-1]
+        topic = TOPICS[0]
         # unsubscribe from topic
         r = requests.put(
             TestContact.endpoint,
@@ -76,14 +84,15 @@ class TestContact:
             == "OPT_OUT"
         )
 
-    @pytest.mark.skip(reason="don't send bulk messages once customers are on the list")
     @pytest.mark.dependency(depends=["TestContact::test_should_be_able_to_create_contact"])
     def test_should_be_able_to_send_msg(self):
+        # careful! setting topic to anything other than the test topic will send
+        # test messages to customers
         r = requests.post(
             f"{URL}/send",
             json={
                 "contact_list_name": CONTACT_LIST_NAME,
-                "topic": CONTACT_LIST_NAME,
+                "topic": TEST_TOPIC,
                 "template_name": TEMPLATE_NAME,
                 "from_email": FROM_EMAIL,
                 "default_attributes": DEFAULT_ATTRS,
