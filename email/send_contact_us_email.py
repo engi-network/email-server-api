@@ -15,8 +15,8 @@ ses_client = boto3.client("sesv2")
 def send_contact_us_email(from_addr, first_name, last_name, subject, message):
     # send a message to us using the information provided on the contact form
     # you gotta be real careful with template interpolation
-    # if the template contains variable that are not defined in the TemplateData arg
-    # the email will silently fail to send
+    # if the template contains a variable that isn't defined in TemplateData
+    # the send will fail silently
     ses_client.send_email(
         FromEmailAddress=FROM_EMAIL,
         Destination={

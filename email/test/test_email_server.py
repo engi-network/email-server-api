@@ -18,8 +18,8 @@ PORT = os.environ.get("PORT", 8000)
 URL = f"http://{HOST}:{PORT}"
 TOPICS.append(TEST_TOPIC)
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
-DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
-ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
+DEFAULT_ATTRS = json.dumps({"first_name": "friend"})
+ATTRS = json.dumps({"first_name": "Christopher"})
 CONTACT_US = {
     "first_name": "Christopher",
     "last_name": "Kelly",
