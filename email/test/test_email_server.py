@@ -20,10 +20,24 @@ TOPICS.append(TEST_TOPIC)
 DATA = {"email": EMAIL, "contact_list_name": CONTACT_LIST_NAME}
 DEFAULT_ATTRS = json.dumps({"name": "friend", "favoriteanimal": "elephant"})
 ATTRS = json.dumps({"name": "chris", "favoriteanimal": "bonobo"})
+CONTACT_US = {
+    "first_name": "Christopher",
+    "last_name": "Kelly",
+    "email": EMAIL,
+    "subject": "Python support",
+    "message": "Will Engi support Python and pytest?",
+}
 
 
 def test_should_be_able_to_ping_server():
     assert requests.get(f"{URL}/ping").json() == "pong"
+
+
+class TestContactUs:
+    endpoint = f"{URL}/contact_us"
+
+    def test_should_be_able_to_contact_us(self):
+        assert requests.post(TestContactUs.endpoint, json=CONTACT_US).status_code == 202
 
 
 class TestContact:

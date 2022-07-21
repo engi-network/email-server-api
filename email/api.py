@@ -5,6 +5,7 @@ app = Flask(__name__)
 api = Api(app)
 
 from contact import Contact
+from contact_us import ContactUs
 from send import Send
 from tasks import add
 
@@ -23,6 +24,7 @@ class Deferred(Resource):
 api.add_resource(Ping, "/ping")
 api.add_resource(Deferred, "/add")
 api.add_resource(Contact, "/contact")
+api.add_resource(ContactUs, "/contact_us")
 api.add_resource(Send, "/send")
 
 if __name__ == "__main__":

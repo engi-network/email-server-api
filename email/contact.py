@@ -26,6 +26,11 @@ parser.add_argument("topics_unsubscribe", action="append", help="list of topics 
 parser.add_argument(
     "send_welcome_email", type=boolean, default=True, help="send welcome email on subscribe"
 )
+# for ContactUs
+parser.add_argument("first_name", type=str, help="first name")
+parser.add_argument("last_name", type=str, help="last name")
+parser.add_argument("subject", type=str, help="message subject")
+parser.add_argument("message", type=str, help="message")
 
 
 def marshal(r):
